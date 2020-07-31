@@ -1,0 +1,9 @@
+com\framework\annotation\MyRequestParam.class
+com\wqfrw\controller\TestController.class
+com\framework\annotation\MyAutowired.class
+com\wqfrw\service\impl\TestServiceImpl.class
+com\framework\servlet\MyDispatcherServlet.class
+com\framework\annotation\MyController.class
+com\framework\annotation\MyRequestMapping.class
+com\framework\annotation\MyService.class
+com\wqfrw\service\ITestService.class
