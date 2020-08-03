@@ -86,15 +86,42 @@ public class MyDispatcherServlet extends HttpServlet {
 
         //根据请求路径如果没有找到对应的方法则抛出404错误
         if (!handlerMapping.containsKey(url)) {
-            resp.getWriter().write("404 Not Found!");
+            resp.getWriter().write("Exception Code : 404\nNot Found!");
             return;
         }
 
-        Map<String,String[]> params = req.getParameterMap();
+        Map<String, String[]> paramsMap = req.getParameterMap();
+
         Method method = handlerMapping.get(url);
+        //拿到方法的形参列表
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        //定义实参列表
+        Object[] paramValues = new Object[parameterTypes.length];
+        for (int i = 0; i < parameterTypes.length; i++) {
+            Class<?> parameterType = parameterTypes[i];
+            if (HttpServletRequest.class == parameterType) {
+                paramValues[i] = req;
+            } else if (HttpServletResponse.class == parameterType) {
+                paramValues[i] = resp;
+            } else {
+                Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+                for (Annotation v : parameterAnnotations[i]) {
+                    if (v instanceof MyRequestParam) {
+                        String paramName = ((MyRequestParam) v).value();
+                        if (!"".equals(paramName.trim())) {
+                            String value = paramsMap.get(paramName)[0];
+                            //获取指定构造方法
+                            Constructor constructor = parameterType.getConstructor(new Class[]{String.class});
+                            paramValues[i] = constructor.newInstance(value);
+                        }
+                    }
+                }
+            }
+        }
+
         String beanName = toLowerFirstCase(method.getDeclaringClass().getSimpleName());
         //方法调用
-        method.invoke(ioc.get(beanName),new Object[]{req,resp,params.get("name")[0]});
+        method.invoke(ioc.get(beanName), paramValues);
     }
 
     /**
